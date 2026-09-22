@@ -3,11 +3,11 @@
 Предметна область: Бібліотека. Сутності: Book, BookCopy, Reader, Loan.
 Призначення: облік видач примірників книг читачам.
 ## Запуск
-dotnet build
+dotnet build <br>
 dotnet run --project src/Cli
 ## Середовище
 .NET SDK 10.0, Ubuntu 24.04 x64
 ## Розмір для Linux
-81036
+81036 кБ
 ## Розмір для Windows
-79032
+79032 кБ

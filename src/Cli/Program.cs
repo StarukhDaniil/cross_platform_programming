@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 string student = "Старух Даніїл, ФЕІ-35";
@@ -28,7 +29,8 @@ if (args.Contains("--json"))
 
     var options = new JsonSerializerOptions
     {
-        WriteIndented = true
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
     Console.WriteLine(JsonSerializer.Serialize(info, options));
