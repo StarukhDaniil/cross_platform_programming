@@ -1,6 +1,34 @@
-﻿using System.Text.Encodings.Web;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using Core;
+using Core.Import;
+
+if (!args.Contains("--json") && !args.Contains("--info"))
+{
+    string path = args.FirstOrDefault() ?? Path.Combine("data", "sample.csv");
+    try
+    {
+        var result = BookCsvImporter.Load(path);
+        Console.WriteLine($"Завантажено книг: {result.Items.Count}");
+        foreach (var book in result.Items.Take(5))
+            Console.WriteLine($"  {book.Id}  {book.Isbn}  {book.Title} ({book.Year})");
+
+        Console.WriteLine($"Пропущено рядків: {result.Errors.Count}");
+        foreach (string error in result.Errors)
+            Console.WriteLine($"  {error}");
+        return 0;
+    }
+    catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
+    {
+        Console.Error.WriteLine($"Файл не знайдено: {Path.GetFullPath(path)}");
+        return 1;
+    }
+    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+    {
+        Console.Error.WriteLine($"Не вдалося прочитати файл «{path}»: {ex.Message}");
+        return 1;
+    }
+}
 
 string student = "Старух Даніїл, ФЕІ-35";
 string domain = "Бібліотека";
@@ -49,3 +77,4 @@ else
     Console.WriteLine(new string('-', 52));
     Console.WriteLine($"Предметна область: {domain}");
 }
+return 0;

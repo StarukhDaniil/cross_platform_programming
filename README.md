@@ -4,7 +4,7 @@
 Призначення: облік видач примірників книг читачам.
 ## Запуск
 dotnet build <br>
-dotnet run --project src/Cli
+dotnet run --project src/Cli -f net10.0
 ## Publish
 dotnet publish src/Cli -c Release -r linux-x64/win-x64 --self-contained true/false
 ## Середовище
@@ -25,3 +25,9 @@ dotnet publish src/Cli -c Release -r linux-x64/win-x64 --self-contained true/fal
 Розмір src/Cli/bin/Release/net10.0/linux-x64/ - 71МБ, стало набагато менше файлів
 ## -p:PublishTrimmed=true
 Розмір src/Cli/bin/Release/net10.0/linux-x64/ - 24МБ, є попередження про те, що при використанні JsonSerializer.Serialize можуть виникнути проблеми через те, що він визначає типи під час виконання програми
+
+## Лабораторна робота 3
+
+Імпортер читає UTF-8 CSV з роздільником `;` і необов’язковим заголовком `id;isbn;title;year`. Кожна книга займає один рядок. Крапка з комою всередині поля не підтримується. Без аргументів CLI читає `data/sample.csv` з поточного каталогу. Для іншого файлу додайте `-- шлях/до/файлу.csv` до команди запуску. Ключі `--info` і `--json` виводять відомості про середовище.
+
+[Звіт до лабораторної роботи](lab03.md)
