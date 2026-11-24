@@ -1,80 +1,44 @@
-using System.Text.Encodings.Web;
+﻿using System.Text.Encodings.Web;
 using System.Text.Json;
 using Core;
 using Core.Import;
+using Core.Dto;
 
-if (!args.Contains("--json") && !args.Contains("--info"))
+string path = args.FirstOrDefault() ?? Path.Combine("data", "sample.csv");
+try
 {
-    string path = args.FirstOrDefault() ?? Path.Combine("data", "sample.csv");
-    try
+    var result = Path.GetExtension(path).ToLowerInvariant() switch
     {
-        var result = BookCsvImporter.Load(path);
-        Console.WriteLine($"Завантажено книг: {result.Items.Count}");
-        foreach (var book in result.Items.Take(5))
-            Console.WriteLine($"  {book.Id}  {book.Isbn}  {book.Title} ({book.Year})");
-
-        Console.WriteLine($"Пропущено рядків: {result.Errors.Count}");
-        foreach (string error in result.Errors)
-            Console.WriteLine($"  {error}");
-        return 0;
-    }
-    catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
-    {
-        Console.Error.WriteLine($"Файл не знайдено: {Path.GetFullPath(path)}");
-        return 1;
-    }
-    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
-    {
-        Console.Error.WriteLine($"Не вдалося прочитати файл «{path}»: {ex.Message}");
-        return 1;
-    }
-}
-
-string student = "Старух Даніїл, ФЕІ-35";
-string domain = "Бібліотека";
-
-var report = EnvironmentInfo.Collect();
-
-Console.WriteLine($"Build Note: {EnvironmentInfo.BuildNote}");
-
-if (args.Contains("--json"))
-{
-    var info = new
-    {
-        Student = student,
-        report.OsDescription,
-        report.OsEnvironment,
-        report.ProcessArchitecture,
-        report.DotNetVersion,
-        report.FrameworkDescription,
-        report.BaseDirectory,
-        report.DetectedRid,
-        report.ReportedRid,
-        Domain = domain
+        ".csv" => BookCsvImporter.Load(path),
+        ".json" => BookJsonImporter.Load(path),
+        _ => throw new ArgumentException("підтримуються файли .csv та .json")
     };
+    int readers = result.Items.OfType<ReaderDto>().Count();
+    Console.WriteLine($"Завантажено книг: {result.Items.Count - readers}");
+    if (readers > 0)
+        Console.WriteLine($"Завантажено читачів: {readers}");
+    foreach (var entry in result.Items.Take(5))
+        Console.WriteLine(entry switch
+        {
+            BookDto book => $"  {book.Id}  {book.Isbn}  {book.Title} ({book.Year})",
+            ReaderDto reader => $"  {reader.Id}  {reader.Name}",
+            _ => entry.ToString()
+        });
 
-    var options = new JsonSerializerOptions
-    {
-        WriteIndented = true,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-    };
-
-    Console.WriteLine(JsonSerializer.Serialize(info, options));
+    int total = result.Items.Count + result.Errors.Count;
+    double percent = total == 0 ? 0 : 100.0 * result.Errors.Count / total;
+    Console.WriteLine($"Усього: {total} | Прийнято: {result.Items.Count} | Пропущено: {result.Errors.Count} | Помилки: {percent:F2}%");
+    foreach (string error in result.Errors)
+        Console.WriteLine($"  {error}");
+    return 0;
 }
-else
+catch (Exception ex) when (ex is FileNotFoundException or DirectoryNotFoundException)
 {
-    Console.WriteLine("CrossApp – практикум з крос-платформного програмування");
-    Console.WriteLine($"Студент: {student}");
-    Console.WriteLine(new string('-', 52));
-
-    Console.WriteLine($"ОС (OSDescription)      : {report.OsDescription}");
-    Console.WriteLine($"ОС (Environment)        : {report.OsEnvironment}");
-    Console.WriteLine($"Архітектура процесу     : {report.ProcessArchitecture}");
-    Console.WriteLine($"Версія .NET (CLR)       : {report.DotNetVersion}");
-    Console.WriteLine($"Runtime                 : {report.FrameworkDescription}");
-    Console.WriteLine($"Каталог застосунку      : {report.BaseDirectory}");
-
-    Console.WriteLine(new string('-', 52));
-    Console.WriteLine($"Предметна область: {domain}");
+    Console.Error.WriteLine($"Файл не знайдено: {Path.GetFullPath(path)}");
+    return 1;
 }
-return 0;
+catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException or JsonException)
+{
+    Console.Error.WriteLine($"Не вдалося прочитати файл «{path}»: {ex.Message}");
+    return 1;
+}

@@ -31,3 +31,10 @@ dotnet publish src/Cli -c Release -r linux-x64/win-x64 --self-contained true/fal
 Імпортер читає UTF-8 CSV з роздільником `;` і необов’язковим заголовком `id;isbn;title;year`. Кожна книга займає один рядок. Крапка з комою всередині поля не підтримується. Без аргументів CLI читає `data/sample.csv` з поточного каталогу. Для іншого файлу додайте `-- шлях/до/файлу.csv` до команди запуску. Ключі `--info` і `--json` виводять відомості про середовище.
 
 [Звіт до лабораторної роботи](lab03.md)
+
+Змішаний CSV підтримує рядки `B;id;isbn;title;year` для книг і `R;id;name` для читачів. JSON містить масив об’єктів із тими самими полями. Поле `type` має значення `B` або `R`, за замовчуванням запис вважається книгою.
+
+```bash
+dotnet run --project src/Cli -f net10.0 -- data/mixed.csv
+dotnet run --project src/Cli -f net10.0 -- data/sample.json
+```

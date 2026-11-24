@@ -7,9 +7,9 @@ public static class BookCsvImporter
 {
     private const char Separator = ';';
 
-    public static ImportResult<BookDto> Load(string path)
+    public static ImportResult<CatalogEntryDto> Load(string path)
     {
-        var items = new List<BookDto>();
+        var items = new List<CatalogEntryDto>();
         var errors = new List<string>();
         int number = 0;
         bool first = true;
@@ -43,6 +43,16 @@ public static class BookCsvImporter
         string[] fields = line.Split(Separator, StringSplitOptions.TrimEntries);
         return fields switch
         {
+            ["B", .. var book] when fields.Length != 4 => ParseBook(book),
+            ["R", "", _] or ["R", _, ""] => new Failed("порожній ідентифікатор або ім’я читача"),
+            ["R", var id, var name] => new Parsed(new ReaderDto(id, name)),
+            _ => ParseBook(fields)
+        };
+    }
+
+    private static ParseOutcome ParseBook(string[] fields) =>
+        fields switch
+        {
             { Length: not 4 } => new Failed($"очікується 4 колонки, отримано {fields.Length}"),
             ["", _, _, _] => new Failed("порожній ідентифікатор"),
             [_, "", _, _] => new Failed("порожній ISBN"),
@@ -52,9 +62,8 @@ public static class BookCsvImporter
                     && value > 0 => new Parsed(new BookDto(id, isbn, title, value)),
             _ => new Failed($"рік «{fields[3]}» має бути додатним цілим числом")
         };
-    }
 
     private abstract record ParseOutcome;
-    private sealed record Parsed(BookDto Value) : ParseOutcome;
+    private sealed record Parsed(CatalogEntryDto Value) : ParseOutcome;
     private sealed record Failed(string Reason) : ParseOutcome;
 }
